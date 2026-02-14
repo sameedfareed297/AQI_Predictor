@@ -29,11 +29,11 @@ jobs:
           HOPSWORKS_PROJECT_NAME: ${{ secrets.HOPSWORKS_PROJECT_NAME }}
           PYTHONPATH: .
         run: |
-           python -m src.Pipeline.train_daily
+           python -m Src.Pipeline.train_daily
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: model-artifacts
-          path: artifacts/
+          path: Artifacts/
           retention-days: 30
