@@ -17,14 +17,14 @@ def fetch_openmeteo_data(start_date, end_date=None):
 
     session.mount("https://", HTTPAdapter(max_retries=retries))
 
-    # 🔑 Open-Meteo REQUIRES end_date if start_date exists
+    # Open-Meteo REQUIRES end_date if start_date exists
     if end_date is None:
         end_date = start_date
 
     params = {
         "latitude": LATITUDE,
         "longitude": LONGITUDE,
-        # ✅ MUST be comma-separated string
+        # comma-separated string
         "hourly": (
             "pm2_5,pm10,carbon_monoxide,"
             "nitrogen_dioxide,sulphur_dioxide,ozone"
@@ -48,7 +48,7 @@ def fetch_openmeteo_data(start_date, end_date=None):
 
     df = pd.DataFrame(data["hourly"])
 
-    # ✅ Correct timestamp
+    # Correct timestamp
     df["timestamp"] = pd.to_datetime(df["time"], utc=True)
 
 

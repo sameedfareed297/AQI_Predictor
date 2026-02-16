@@ -1,23 +1,18 @@
 import os
-os.environ["HOPSWORKS_DISABLE_MODEL_SERVING"] = "1"
+import hopsworks
+import pandas as pd
 
 from dotenv import load_dotenv
 load_dotenv()
-
-import hopsworks
-import pandas as pd
 
 from Src.models.train_models import train_models
 from Src.models.evaluate import evaluate_models
 from Src.models.save_model import save_models
 
-
 def main():
-    print("🚀 Starting DAILY training pipeline...")
+    print(" - Starting Daily training pipeline")
 
-    # -----------------------
     # Login with retry
-    # -----------------------
     import time
     
     for attempt in range(3):
@@ -36,19 +31,15 @@ def main():
     
     fs = project.get_feature_store()
 
-    # -----------------------
-    # Feature Group v5
-    # -----------------------
-    print("📊 Fetching Feature Group v5...")
+    # Feature Group v6
+    print("📊 Fetching Feature Group v6..")
     fg = fs.get_feature_group(
         name="karachi_air_quality",
-        version=5
+        version=6
     )
 
-    # -----------------------
-    # Feature View v4 (includes aqi)
-    # -----------------------
-    print("🧠 Creating/Fetching Feature View v4...")
+    # Feature View v1 (includes aqi)
+    print("🧠 Creating/Fetching Feature View v1..")
     
     fv = fs.get_or_create_feature_view(
         name="karachi_air_quality_fv_v2",
@@ -60,12 +51,10 @@ def main():
     if fv is None:
         raise RuntimeError("❌ Feature View creation failed")
     
-    print("✅ Feature View v4 ready")
+    print(" - Feature View v4 ready")
 
-    # -----------------------
     # Read Data
-    # -----------------------
-    print("📥 Reading all data from Feature Store...")
+    print(" - Reading all data from Feature Store...")
     df = fv.get_batch_data()
     
     print(f"📈 Total rows: {df.shape[0]}")
@@ -80,23 +69,20 @@ def main():
         print("⚠️ Not enough data to train. Skipping.")
         return
 
-    # Sort by timestamp for proper time-series split
     df = df.sort_values("timestamp").reset_index(drop=True)
 
-    # -----------------------
-    # Train → Evaluate → Save
-    # -----------------------
-    print("🔧 Training models...")
+    # Train -> Evaluate -> Save
+    print(" Training models...")
     models, metrics = train_models(df)
     
-    print("📊 Evaluating models...")
+    print(" Evaluating models...")
     evaluate_models(metrics)
     
-    print("💾 Saving best model (local + registry)...")
+    print(" Saving best model (local + registry)...")
     save_models(models, metrics)
 
 
-    print("✅ Daily training pipeline finished successfully")
+    print("- Daily training pipeline finished successfully")
 
 
 if __name__ == "__main__":

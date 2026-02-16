@@ -3,13 +3,9 @@ from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
-
 from Src.features.feature_engineering import create_lag_features, FEATURES, TARGET
 
-
-# ===========================
 # TRAINING
-# ===========================
 def train_models(df):
     """
     df must have columns: timestamp, aqi (raw historical data).
@@ -20,7 +16,7 @@ def train_models(df):
     X = df[FEATURES]
     y = df[TARGET]
 
-    # ⏳ Time-aware split (NO shuffle — order matters for time series)
+    # Time-aware split (NO shuffle — order matters for time series)
     split_idx = int(len(df) * 0.8)
     X_train, X_test = X.iloc[:split_idx], X.iloc[split_idx:]
     y_train, y_test = y.iloc[:split_idx], y.iloc[split_idx:]
@@ -28,9 +24,7 @@ def train_models(df):
     models = {}
     metrics = {}
 
-    # ---------------------------
     # Linear Regression
-    # ---------------------------
     lr = LinearRegression()
     lr.fit(X_train, y_train)
     y_pred = lr.predict(X_test)
@@ -42,9 +36,7 @@ def train_models(df):
     }
     models["LinearRegression"] = lr
 
-    # ---------------------------
     # Random Forest
-    # ---------------------------
     rf = RandomForestRegressor(
         n_estimators=200,
         random_state=42,
@@ -60,9 +52,7 @@ def train_models(df):
     }
     models["RandomForest"] = rf
 
-    # ---------------------------
     # Gradient Boosting
-    # ---------------------------
     gb = GradientBoostingRegressor(
         n_estimators=300,
         learning_rate=0.05,

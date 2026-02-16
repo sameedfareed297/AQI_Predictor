@@ -4,7 +4,6 @@ import pandas as pd
 from dotenv import load_dotenv
 
 load_dotenv()
-os.environ["HOPSWORKS_DISABLE_MODEL_SERVING"] = "5"
 
 def main():
     project = hopsworks.login(
@@ -25,7 +24,7 @@ def main():
     os.makedirs("artifacts", exist_ok=True)
     df.to_parquet("artifacts/latest_features.parquet", index=False)
 
-    print("✅ Latest features exported")
+    print(" - Latest features exported")
 
 if __name__ == "__main__":
     main()
@@ -35,7 +34,6 @@ import pandas as pd
 from dotenv import load_dotenv
 
 load_dotenv()
-os.environ["HOPSWORKS_DISABLE_MODEL_SERVING"] = "1"
 
 def main():
     project = hopsworks.login(
@@ -47,7 +45,7 @@ def main():
 
     fg = fs.get_feature_group(
         name="karachi_air_quality",
-        version=4
+        version=6
     )
 
     df = fg.read()
@@ -56,7 +54,7 @@ def main():
     os.makedirs("artifacts", exist_ok=True)
     df.to_parquet("artifacts/latest_features.parquet", index=False)
 
-    print("✅ Latest features exported")
+    print(" - Latest features exported")
 
 if __name__ == "__main__":
     main()

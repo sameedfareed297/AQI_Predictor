@@ -3,32 +3,18 @@ from pathlib import Path
 from datetime import timedelta
 import pandas as pd
 
-# ===========================
-# FIX: Point Python to src/features/ so it can find feature_engineering.py
+# Fix: Point Python to Src/features/ so it can find feature_engineering.py
 # This file (utils.py) lives at:          AQI_PREDICTOR/utils.py
 # feature_engineering.py lives at:        AQI_PREDICTOR/src/features/feature_engineering.py
-# ===========================
-_ROOT = Path(__file__).resolve().parent                      # AQI_PREDICTOR/
-sys.path.insert(0, str(_ROOT / "src" / "features"))          # adds src/features/ to path
 
-from Src.features.feature_engineering import FEATURES, TARGET, LAGS      # now this works ✅
+_ROOT = Path(__file__).resolve().parent                      # AQI_PREDICTOR/
+sys.path.insert(0, str(_ROOT / "Src" / "features"))          # adds src/features/ to path
+
+from Src.features.feature_engineering import FEATURES, TARGET, LAGS      # now this works 
 
 
 def generate_forecast(historical_df, model, days=3):
-    """
-    Recursive multi-step AQI forecast (hourly).
 
-    How it works:
-      - We keep a rolling window of past AQI values (at least 48 rows,
-        because the deepest lag is 48 hours).
-      - Each iteration: build features from that window, predict one hour,
-        append the prediction as the newest "known" AQI, and repeat.
-
-    Args:
-        historical_df: DataFrame with columns including 'timestamp' and 'aqi'.
-        model:         A trained sklearn model that expects FEATURES as input.
-        days:          Number of days to forecast.
-    """
     if historical_df is None or historical_df.empty:
         return None
 
@@ -42,13 +28,12 @@ def generate_forecast(historical_df, model, days=3):
     forecasts = []
 
     for step in range(hours):
-        # --- 1. Next timestamp ---
+        # 1. Next timestamp 
         next_ts = last_ts + timedelta(hours=1)
 
-        # --- 2. Build feature row ---
+        # 2. Build feature row
         row = {}
 
-        # Lag features: aqi_lag_1 = 1 hour ago, aqi_lag_24 = 24 hours ago, etc.
         for lag in LAGS:
             row[f"{TARGET}_lag_{lag}"] = history_aqi[-lag]
 
@@ -58,17 +43,16 @@ def generate_forecast(historical_df, model, days=3):
         row["month"] = next_ts.month
         row["weekday"] = next_ts.weekday()
 
-        # --- 3. Predict ---
-        X = pd.DataFrame([row])[FEATURES]  # enforce column order
+        # 3. Predict 
+        X = pd.DataFrame([row])[FEATURES] 
         aqi_pred = float(model.predict(X)[0])
 
-        # --- 4. Record the prediction ---
+        # 4. Record the prediction
         forecasts.append({
             "timestamp": next_ts,
             "aqi_predicted": aqi_pred
         })
 
-        # --- 5. Feed prediction back as the next "known" value (recursive) ---
         history_aqi.append(aqi_pred)
 
         # Move timestamp forward

@@ -1,5 +1,4 @@
 import os
-os.environ["HOPSWORKS_DISABLE_MODEL_SERVING"] = "1"
 
 from datetime import datetime, timedelta
 import hopsworks
@@ -22,11 +21,11 @@ from Src.data_ingestion.fetch_openmeteo import fetch_openmeteo_data
 from Src.features.build_features import build_features
 from Src.feature_store.push_to_hopsworks import push_features
 
-BOOTSTRAP = False  # ← Incremental mode: fetch new data daily
+BOOTSTRAP = False  # <- Incremental mode: fetch new data daily
 
 
 def safe_read(fg, retries=3, wait=10):
-    """Read from feature group with retry logic"""
+    """ Read from feature group with retry logic """
     for i in range(retries):
         try:
             return fg.read()
@@ -37,22 +36,8 @@ def safe_read(fg, retries=3, wait=10):
             else:
                 raise RuntimeError(f"Feature store read failed after {retries} attempts: {e}")
 
-
-def save_backup(df, prefix="backup_features"):
-    """Save dataframe as backup in case of insertion failure"""
-    try:
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        filename = f"{prefix}_{timestamp}.csv"
-        df.to_csv(filename, index=False)
-        logger.info(f"💾 Backup saved to {filename}")
-        return filename
-    except Exception as e:
-        logger.error(f"Failed to save backup: {e}")
-        return None
-
-
 def main():
-    print("🔄 Starting Open-Meteo AQI pipeline...")
+    print(" => Starting Open-Meteo AQI pipeline...")
 
     # Login to Hopsworks
     try:
@@ -76,9 +61,7 @@ def main():
         online_enabled=False
     )
 
-    # ---------------------------
-    # BOOTSTRAP MODE
-    # ---------------------------
+    # BootStrap Mode
     if BOOTSTRAP:
         start = (datetime.utcnow() - timedelta(days=365)).strftime("%Y-%m-%d")
         end = datetime.utcnow().strftime("%Y-%m-%d")
@@ -86,14 +69,12 @@ def main():
         print(f"🆕 Bootstrapping {start} → {end}")
         df_raw = fetch_openmeteo_data(start, end)
 
-    # ---------------------------
-    # INCREMENTAL MODE
-    # ---------------------------
+    # Incremental Mode
     else:
         df_hist = safe_read(fg)
     
         if df_hist.empty:
-            print("🟡 Feature store empty — run BOOTSTRAP mode first")
+            print("🔴 Feature store empty — run BOOTSTRAP mode first")
             print("   Set BOOTSTRAP = True in main.py")
             return
     
@@ -109,12 +90,10 @@ def main():
         )
 
         if df_raw.empty:
-            print("🟡 No new Open-Meteo data")
+            print("🫙 No new Open-Meteo data")
             return
 
-    # ---------------------------
-    # BUILD FEATURES
-    # ---------------------------
+    # Build Features
     if BOOTSTRAP:
         df_features = build_features(df_raw)
     else:
@@ -131,7 +110,7 @@ def main():
         )
         
         if df_raw_with_history.empty:
-            print("🟡 No raw data available for feature building")
+            print("🫙 No raw data available for feature building")
             return
         
         # Build features from history + new to compute lags correctly
@@ -142,14 +121,13 @@ def main():
 
     
     if df_features.empty:
-        print("🟡 No features generated")
+        print("🫙 No features generated")
         return
     
     print(f"📊 Generated {len(df_features)} feature rows")
     
-    # ---------------------------
-    # PUSH TO HOPSWORKS
-    # ---------------------------
+    
+    # Push To Hopsworks
     try:
         push_features(fg, df_features)
         
@@ -161,12 +139,7 @@ def main():
         
     except Exception as e:
         logger.error(f"❌ Failed to push features: {e}")
-        
-        # Save backup
-        backup_file = save_backup(df_features)
-        
         logger.error("Pipeline failed during feature insertion")
-        logger.info(f"Data preserved in: {backup_file or 'latest_features.parquet (if exists)'}")
         
         # Re-raise to fail the pipeline
         raise
@@ -176,5 +149,5 @@ if __name__ == "__main__":
     try:
         main()
     except Exception as e:
-        logger.error(f"💥 Pipeline failed with error: {e}")
+        logger.error(f"🔴 Pipeline failed with error: {e}")
         exit(1)

@@ -12,17 +12,17 @@ def push_features(fg, df: pd.DataFrame, max_retries=3):
     Args:
         fg: Hopsworks feature group object
         df: DataFrame with features to push
-        max_retries: Maximum number of retry attempts (default: 3)
+        max_retries: Maximum number of retry (attempts 3)
     """
     if df is None or len(df) == 0:
-        logger.warning("⚠️ No data to insert")
+        logger.warning("No data to insert")
         return
     
-    print(f"📤 Attempting to insert {len(df)} rows into feature group...")
+    print(f" Attempting to insert {len(df)} rows into feature group...")
     
     for attempt in range(max_retries):
         try:
-            print(f"🔄 Attempt {attempt + 1}/{max_retries}")
+            print(f" - Attempt {attempt + 1}/{max_retries}")
             
             # Try synchronous insert for better reliability
             fg.insert(
@@ -52,7 +52,7 @@ def push_features(fg, df: pd.DataFrame, max_retries=3):
                 print(f"💥 All {max_retries} attempts failed")
                 
                 # Last resort: try async insert
-                print("🔧 Trying asynchronous insertion as fallback...")
+                print(" - Trying asynchronous insertion as fallback...")
                 try:
                     fg.insert(df, write_options={"wait_for_job": False})
                     print("⚠️ Async insertion triggered")
@@ -79,23 +79,23 @@ def push_features_in_batches(fg, df: pd.DataFrame, batch_size=10, max_retries=3)
     Args:
         fg: Hopsworks feature group object
         df: DataFrame with features to push
-        batch_size: Number of rows per batch (default: 10)
-        max_retries: Maximum retries per batch (default: 3)
+        batch_size: Number of rows per batch (10)
+        max_retries: Maximum retries per batch (3)
     """
     if df is None or len(df) == 0:
-        logger.warning("⚠️ No data to insert")
+        logger.warning("No data to insert")
         return
     
     total_rows = len(df)
     total_batches = (total_rows + batch_size - 1) // batch_size
     
-    print(f"📦 Splitting {total_rows} rows into {total_batches} batches of ~{batch_size} rows")
+    print(f"Splitting {total_rows} rows into {total_batches} batches of ~{batch_size} rows")
     
     for i in range(0, total_rows, batch_size):
         batch = df.iloc[i:i+batch_size]
         batch_num = i // batch_size + 1
         
-        print(f"\n📤 Inserting batch {batch_num}/{total_batches} ({len(batch)} rows)...")
+        print(f"\n Inserting batch {batch_num}/{total_batches} ({len(batch)} rows)..")
         
         for attempt in range(max_retries):
             try:
@@ -106,7 +106,7 @@ def push_features_in_batches(fg, df: pd.DataFrame, batch_size=10, max_retries=3)
                         "start_offline_materialization": True
                     }
                 )
-                print(f"✅ Batch {batch_num} inserted successfully")
+                print(f"Batch {batch_num} inserted successfully")
                 time.sleep(2)  # Small delay between batches
                 break
                 

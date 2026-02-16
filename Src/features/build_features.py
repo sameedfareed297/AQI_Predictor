@@ -34,13 +34,13 @@ def build_features(df):
     
     df["timestamp"] = pd.to_datetime(df["timestamp"], utc=True)
 
-    # ✅ EVENT_ID: Primary key (as STRING for Hopsworks)
+    #EVENT_ID: Primary key (as STRING for Hopsworks)
     df["event_id"] = (df["timestamp"].astype("int64") // 10**9).astype(str)
 
     # TARGET: Compute AQI from PM2.5
     df["aqi"] = df["pm2_5"].apply(compute_aqi_pm25)
 
-    # ==================== TIME FEATURES ====================
+    # TIME FEATURES
     df["hour"] = df["timestamp"].dt.hour
     df["day"] = df["timestamp"].dt.day
     df["month"] = df["timestamp"].dt.month
@@ -48,10 +48,10 @@ def build_features(df):
     df["dayofyear"] = df["timestamp"].dt.dayofyear
     df["is_weekend"] = (df["weekday"].isin([5, 6])).astype("int32")
 
-    # ==================== POLLUTANTS ====================
+    # POLLUTANTS 
     pollutants = ["pm2_5", "pm10", "carbon_monoxide", "nitrogen_dioxide", "sulphur_dioxide", "ozone"]
     
-    # ==================== LAG FEATURES [1, 3, 6, 24] ====================
+    # LAG FEATURES [1, 3, 6, 24]
     lags = [1, 3, 6, 24]
     
     # Pollutant lags
@@ -63,7 +63,7 @@ def build_features(df):
     for lag in lags:
         df[f"aqi_lag{lag}"] = df["aqi"].shift(lag)
 
-    # ==================== ROLLING AVERAGE FEATURES [6, 12, 24] ====================
+    # ROLLING AVERAGE FEATURES [6, 12, 24]
     rolling_windows = [6, 12, 24]
     
     # Pollutant rolling averages
@@ -75,7 +75,7 @@ def build_features(df):
     for window in rolling_windows:
         df[f"aqi_roll{window}"] = df["aqi"].rolling(window).mean()
 
-    # ==================== DIFFERENCE FEATURES [1, 24] ====================
+    # DIFFERENCE FEATURES [1, 24]
     diffs = [1, 24]
     
     # Pollutant differences (momentum)
@@ -87,12 +87,11 @@ def build_features(df):
     for diff in diffs:
         df[f"aqi_diff{diff}"] = df["aqi"].diff(diff)
 
-    # ==================== TARGET VARIABLE ====================
+    # TARGET VARIABLE
     # Predict AQI 24 hours ahead (for supervised learning)
     df["target_aqi_t24"] = df["aqi"].shift(-24)
 
-    # ==================== DROP NAs ====================
-    # After all shifts: max lag=24, max rolling=24, target shift=-24
+    # DROP NAs
     # Need ~49 rows before first valid row is complete
     df.dropna(inplace=True)
 

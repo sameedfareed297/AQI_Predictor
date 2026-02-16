@@ -19,14 +19,10 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 load_dotenv()
 
-# ===========================
-# ✅ FIX: Import the CORRECT recursive forecast from utils.py
-# ===========================
+# Fix: Import the CORRECT recursive forecast from utils.py
 from utils import generate_forecast
 
-# ===========================
-# PAGE CONFIGURATION
-# ===========================
+# Page Configuration
 st.set_page_config(
     page_title="Karachi AQI Predictor",
     page_icon="🌫️",
@@ -39,9 +35,7 @@ st.set_page_config(
     }
 )
 
-# ===========================
-# CUSTOM STYLING - DARK THEME WITH RIGHT SIDEBAR
-# ===========================
+# Custom Styling
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
@@ -279,30 +273,48 @@ st.markdown("""
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     }
     
-    /* Sidebar scrollbar - White color */
+    /* Main Content Area Scrollbar */
+    ::-webkit-scrollbar {
+        width: 10px;
+    }
+    
+    ::-webkit-scrollbar-track {
+        background: #f0f2f6;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+        background: #667eea;
+        border-radius: 5px;
+        border: 2px solid #f0f2f6;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+        background: #5568d3;
+    }
+    
+    /* Sidebar scrollbar */
     [data-testid="stSidebar"]::-webkit-scrollbar {
-        width: 8px;
+        width: 10px;
     }
     
     [data-testid="stSidebar"]::-webkit-scrollbar-track {
-        background: rgba(255, 255, 255, 0.1);
+        background: rgba(102, 126, 234, 0.2);
     }
     
     [data-testid="stSidebar"]::-webkit-scrollbar-thumb {
-        background: white;
-        border-radius: 10px;
+        background: #667eea;
+        border-radius: 5px;
+        border: 2px solid rgba(26, 26, 46, 0.5);
     }
     
     [data-testid="stSidebar"]::-webkit-scrollbar-thumb:hover {
-        background: #f0f0f0;
+        background: #a78bfa;
     }
 </style>
 """, unsafe_allow_html=True)
 
 
-# ===========================
-# HELPER FUNCTIONS
-# ===========================
+# Helper Functions
 def get_aqi_category_info(aqi_value: float):
     """Get category label and color for an AQI value."""
     if aqi_value <= 50:
@@ -329,9 +341,7 @@ def get_health_recommendation(aqi_value: float) -> str:
     else:
         return "Air quality is acceptable for most people. Enjoy outdoor activities!"
 
-# ===========================
-# ✅ FIXED: Load historical data WITHOUT cached Streamlit commands
-# ===========================
+# FIXED: Load historical data WITHOUT cached Streamlit commands
 def load_historical_data_internal():
     """Load historical AQI data from Hopsworks Feature Store (no st.xxx calls)."""
     
@@ -401,7 +411,7 @@ def get_model_metadata():
         "mae": 0.2776,
         "rmse": 2.0713,
         "r2": 0.9976,
-        "status": "✅ Model Loaded"
+        "status": "✔️ Model Loaded"
     }
     
     try:
@@ -428,7 +438,7 @@ def get_model_metadata():
                         "best_model": loaded_metrics.get('best_model', 'GradientBoosting')
                     })
                 
-                metadata['status'] = "✅ Metrics Loaded"
+                metadata['status'] = " ✔️ Metrics Loaded"
     except Exception as e:
         pass
     
@@ -450,9 +460,8 @@ def load_model():
         st.warning(f"⚠️ Could not load model: {str(e)}")
         return None
 
-# ===========================
-# SHOW INITIAL LOADING STATE
-# ===========================
+
+# Show Initial Loading State
 loading_placeholder = st.empty()
 with loading_placeholder.container():
     st.markdown("""
@@ -468,9 +477,7 @@ with loading_placeholder.container():
     status_text.text("🔑 Connecting to Hopsworks...")
     progress_bar.progress(25)
 
-# ===========================
-# LOAD DATA - WITH PROPER ERROR HANDLING
-# ===========================
+# Load Data - With Handling
 try:
     with st.spinner("🔐 Connecting to Hopsworks..."):
         historical_df = load_historical_data()
@@ -484,7 +491,7 @@ try:
     
     model = load_model()
     progress_bar.progress(100)
-    status_text.text("✅ Ready!")
+    status_text.text("✔️ Ready!")
     
     # Clear loading screen
     import time
@@ -529,25 +536,15 @@ latest_ts = pd.to_datetime(latest_data['timestamp'])
 now_aware = datetime.now(timezone.utc) if latest_ts.tzinfo else datetime.now()
 data_age_hours = (now_aware - latest_ts).total_seconds() / 3600
 
-# ===========================
 # SIDEBAR: CI/CD PIPELINE STATUS
-# ===========================
 with st.sidebar:
-    st.markdown("### 🔄 Pipeline Status")
+    st.markdown("### 🪈 Pipeline Status")
     st.markdown("---")
     
     st.markdown("**📊 Data Ingestion**")
-    st.caption("Runs: Hourly")
-    latest_timestamp = pd.to_datetime(historical_df['timestamp'].iloc[-1])
-    now_aware_check = datetime.now(timezone.utc) if latest_timestamp.tzinfo else datetime.now()
-    time_since_update = (now_aware_check - latest_timestamp).total_seconds() / 3600
-    
-    if time_since_update < 2:
-        st.success("Active", icon="✅")
-    elif time_since_update < 6:
-        st.warning(f"⚠️ {time_since_update:.1f}h ago", icon="⚠️")
-    else:
-        st.error(f"❌ {time_since_update:.1f}h ago", icon="❌")
+    st.caption("Runs: Hourly via GitHub Actions")
+    st.success("Active", icon="✔️")
+    st.caption(f"Last data point: {pd.to_datetime(historical_df['timestamp'].iloc[-1]).strftime('%b %d, %I:%M %p')}")
     
     st.markdown("**🤖 Training Pipeline**")
     st.caption("Runs: Daily @ 8:00 AM")
@@ -555,7 +552,7 @@ with st.sidebar:
     
     st.markdown("**🎯 Active Model**")
     if model is not None:
-        st.success(f"{model_metadata['best_model']}", icon="✅")
+        st.success(f" {model_metadata['best_model']}", icon="✔️")
         st.caption(f"Status: {model_metadata['status']}")
         st.markdown("**Performance Metrics:**")
         col1, col2 = st.columns(2)
@@ -571,7 +568,6 @@ with st.sidebar:
     
     st.markdown("**📅 Data Information**")
     st.caption(f"Updated: {latest_data['timestamp'].strftime('%b %d, %I:%M %p')}")
-    st.caption(f"Age: {data_age_hours:.1f}h")
     st.caption(f"Total Records: {len(historical_df)}")
     st.caption(f"7-Day Average: {recent_df['aqi'].mean():.0f}")
     
@@ -587,18 +583,13 @@ if data_age_hours < -1:
     data_freshness_icon = "🚨"
     data_freshness_text = f"Sync issue ({abs(data_age_hours):.1f}h)"
 elif data_age_hours < 0:
-    data_freshness_icon = "✅"
+    data_freshness_icon = "✔️"
     data_freshness_text = "Just updated"
-elif data_age_hours > 2:
-    data_freshness_icon = "⚠️"
-    data_freshness_text = f"Updated {data_age_hours:.1f}h ago"
 else:
-    data_freshness_icon = "✅"
+    data_freshness_icon = "✔️"
     data_freshness_text = f"Updated {data_age_hours:.1f}h ago"
 
-# ===========================
-# HEADER
-# ===========================
+# Header
 st.markdown(f"""
 <div class="hero-header">
     <h1 class="hero-title">🌫️ Karachi Air Quality Monitor</h1>
@@ -610,9 +601,8 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-# ===========================
-# KEY METRICS
-# ===========================
+
+# Key Metrics
 current_aqi = latest_data['aqi']
 current_category, current_color = get_aqi_category_info(current_aqi)
 avg_24h = recent_df.tail(24)['aqi'].mean()
@@ -652,7 +642,7 @@ with col3:
 with col4:
     unhealthy_hours = len(recent_df[recent_df['aqi'] > 150])
     if unhealthy_hours == 0:
-        alert_icon, alert_text, alert_color = "✅", "All Clear", "#28a745"
+        alert_icon, alert_text, alert_color = "✔️", "All Clear", "#28a745"
     elif unhealthy_hours <= 24:
         alert_icon, alert_text, alert_color = "⚠️", f"{unhealthy_hours}h Alert", "#f39c12"
     else:
@@ -668,9 +658,7 @@ with col4:
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# ===========================
-# HEALTH ALERT BANNER
-# ===========================
+# Health Alert Banner
 if current_aqi > 150:
     st.markdown(f"""
     <div class='alert-box'>
@@ -688,9 +676,7 @@ elif current_aqi > 100:
     </div>
     """, unsafe_allow_html=True)
 
-# ===========================
-# 3-DAY FORECAST
-# ===========================
+# 3-DAY Forecast
 st.markdown("<div class='section-header'>🔮 3-Day Forecast</div>", unsafe_allow_html=True)
 
 if model is not None:
@@ -764,7 +750,7 @@ if model is not None:
                 </div>
                 """, unsafe_allow_html=True)
             
-            st.caption(f"Model: {model_metadata['best_model']} | Recursive forecasting")
+            st.caption(f"Model: {model_metadata['best_model']}")
     else:
         st.warning("⚠️ Forecast returned empty. Check that historical_df has an 'aqi' column and at least 49 rows.")
 else:
@@ -773,15 +759,13 @@ else:
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# ===========================
-# HEALTH RECOMMENDATIONS
-# ===========================
+# Health Recommendations
 st.markdown("<div class='section-header'>💡 Health Recommendations</div>", unsafe_allow_html=True)
 st.markdown("<br>", unsafe_allow_html=True)
 
 recommendation = get_health_recommendation(current_aqi)
 if current_aqi <= 50:
-    st.success(f"✅ {recommendation}")
+    st.success(f"✔️ {recommendation}")
 elif current_aqi <= 100:
     st.info(f"ℹ️ {recommendation}")
 elif current_aqi <= 150:
@@ -791,9 +775,7 @@ else:
 
 st.divider()
 
-# ===========================
-# DETAILED ANALYTICS (TABS)
-# ===========================
+# Detailed Analytics (TABS)
 st.markdown("<div class='section-header'>📊 Detailed Analytics & Insights</div>", unsafe_allow_html=True)
 st.markdown("<br>", unsafe_allow_html=True)
 
@@ -840,9 +822,9 @@ with tab1:
     with col1:
         st.metric("📊 Weekly Average", f"{recent_df['aqi'].mean():.0f}")
     with col2:
-        st.metric("📈 Peak This Week", f"{recent_df['aqi'].max():.0f}")
+        st.metric("📈 This Week (PEAK)", f"{recent_df['aqi'].max():.0f}")
     with col3:
-        st.metric("📉 Best This Week", f"{recent_df['aqi'].min():.0f}")
+        st.metric("📉 This Week (BEST)", f"{recent_df['aqi'].min():.0f}")
 
 with tab2:
     st.markdown("#### Current Pollutant Breakdown")
@@ -947,7 +929,7 @@ with tab3:
                 <li><strong>RMSE:</strong> {model_metadata['rmse']:.4f} (root mean squared error)</li>
                 <li><strong>R² Score:</strong> {model_metadata['r2']:.4f} (prediction accuracy)</li>
             </ul>
-            <p style='margin-top: 1rem; color: #28a745;'><strong>✅ Best High-performing model trained on Karachi air quality data</strong></p>
+            <p style='margin-top: 1rem; color: #28a745;'><strong>✔️ Best High-performing model trained on Karachi air quality data</strong></p>
         </div>
         """, unsafe_allow_html=True)
 
@@ -986,17 +968,6 @@ with tab3:
         hide_index=True
     )
 
-    st.success("✅ **Best Model: GradientBoosting** (Lowest MAE & RMSE, Highest R²)")
-    st.caption("**Training data:** 8870 samples")
-
+    st.success("✔️ **Best Model: GradientBoosting** (Lowest MAE & RMSE, Highest R²)")
+    st.caption("**Training Data: ** 8736 Samples  ")
 st.divider()
-
-# ===========================
-# FOOTER
-# ===========================
-st.markdown("""
-<div style='text-align: center; padding: 2rem 0; color: #808080; border-top: 1px solid #3a4250; margin-top: 2rem;'>
-    <p style='font-size: 0.9rem;'>🌍 <strong style="color: #e0e0e0;">Karachi AQI Predictor</strong> | Built with Streamlit + Hopsworks + GradientBoosting</p>
-    <p style='font-size: 0.8rem; color: #606060;'>Data updates hourly | Models retrain daily | Predictions refresh every 30 minutes</p>
-</div>
-""", unsafe_allow_html=True)

@@ -18,6 +18,6 @@ def save_models(models, metrics, folder="artifacts"):
     with open(metrics_path, "w") as f:
         json.dump(metrics, f, indent=4)
 
-    print(f"💾 Model saved: {model_path}")
-    print(f"📊 Metrics saved: {metrics_path}")
+    print(f" - Model saved: {model_path}")
+    print(f" - Metrics saved: {metrics_path}")
     print(f"🏆 Best model: {best_model_name}")

@@ -1,4 +1,4 @@
-name: Daily Model Training
+name: Training Pipeline (Daily)
 
 on:
   schedule:

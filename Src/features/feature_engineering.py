@@ -1,14 +1,9 @@
-# ===========================
-# SINGLE SOURCE OF TRUTH
-# These constants are imported by train_models.py and utils.py
-# so all three files stay in sync.
-# ===========================
+# These constants are imported by train_models.py and utils.py (these will stay in sync).
+
 LAGS = [1, 24, 48]
 TIME_FEATURES = ["hour", "day", "month", "weekday"]
 TARGET = "aqi"
 FEATURES = [f"{TARGET}_lag_{lag}" for lag in LAGS] + TIME_FEATURES
-# Result: ["aqi_lag_1", "aqi_lag_24", "aqi_lag_48", "hour", "day", "month", "weekday"]
-
 
 def create_lag_features(df):
     """
