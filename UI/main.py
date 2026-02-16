@@ -562,7 +562,7 @@ with st.sidebar:
         with col2:
             st.metric("RMSE", f"{model_metadata['rmse']:.2f}")
     else:
-        st.error("❌ Model not loaded", icon="❌")
+        st.error("❌ Model not loaded")
     
     st.markdown("---")
     

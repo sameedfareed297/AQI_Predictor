@@ -6,10 +6,6 @@ __pycache__/
 .DS_Store
 .venv/
 
-# Ignore credentials
-.streamlit/secrets.toml
-secrets.toml
-
 # Ignore data files
 *.csv
 *.parquet
