@@ -706,6 +706,9 @@ if model is not None:
                          title='AQI Trend: Historical + 3-Day Forecast',
                          labels={'value': 'AQI', 'timestamp': 'Date & Time'},
                          color_discrete_map={'Historical': '#667eea', 'Forecast': '#f39c12'})
+
+            # Set title font color to white
+            fig.update_layout(title_font_color='white')
             
             fig.add_hline(y=50, line_dash="dash", line_color="green", opacity=0.3,
                          annotation_text="Good")
@@ -802,7 +805,6 @@ with tab1:
     fig_hist.add_hline(y=150, line_dash="dash", line_color="orange", opacity=0.5, annotation_text="Unhealthy")
     
     fig_hist.update_layout(
-        title="Past 7 Days Air Quality Trend",
         xaxis_title="Date",
         yaxis_title="Air Quality Index (AQI)",
         height=450,
@@ -858,7 +860,8 @@ with tab2:
             color_continuous_scale=["#28a745", "#ffc107", "#dc3545"],
             text="Concentration"
         )
-        
+        # Set title font color to white
+        fig_pollutants.update_layout(title_font_color='white')
         fig_pollutants.update_traces(texttemplate='%{text:.1f}', textposition='outside')
         fig_pollutants.update_layout(
             height=400, 
@@ -969,5 +972,5 @@ with tab3:
     )
 
     st.success("✔️ **Best Model: GradientBoosting** (Lowest MAE & RMSE, Highest R²)")
-    st.caption("**Training Data: ** 8736 Samples  ")
+    st.caption("Training Data: 8736 Samples  ")
 st.divider()
