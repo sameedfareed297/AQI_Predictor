@@ -416,7 +416,7 @@ def get_model_metadata():
     
     try:
         project_root = Path(__file__).parent.parent
-        metrics_path = project_root / "artifacts" / "metrics.json"
+        metrics_path = project_root / "Artifacts" / "metrics.json"
         
         if metrics_path.exists():
             with open(metrics_path, 'r') as f:
@@ -449,7 +449,7 @@ def load_model():
     """Load the trained model from artifacts directory."""
     try:
         project_root = Path(__file__).parent.parent
-        model_path = project_root / "artifacts" / "model.joblib"
+        model_path = project_root / "Artifacts" / "model.joblib"
         
         if model_path.exists():
             model = joblib.load(model_path)

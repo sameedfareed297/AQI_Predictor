@@ -21,8 +21,8 @@ def main():
     df = fg.read()
     df = df.sort_values("timestamp")
 
-    os.makedirs("artifacts", exist_ok=True)
-    df.to_parquet("artifacts/latest_features.parquet", index=False)
+    os.makedirs("Artifacts", exist_ok=True)
+    df.to_parquet("Artifacts/latest_features.parquet", index=False)
 
     print(" - Latest features exported")
 
@@ -51,8 +51,8 @@ def main():
     df = fg.read()
     df = df.sort_values("timestamp")
 
-    os.makedirs("artifacts", exist_ok=True)
-    df.to_parquet("artifacts/latest_features.parquet", index=False)
+    os.makedirs("Artifacts", exist_ok=True)
+    df.to_parquet("Artifacts/latest_features.parquet", index=False)
 
     print(" - Latest features exported")
 
