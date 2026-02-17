@@ -19,7 +19,7 @@ This project was developed during a Data Science internship at **10Pearls** and 
 
 ### 🤖 Machine Learning & Model Registry
 
-* Models: Ridge Regression, Random Forest, XGBoost
+* Models: Linear Regression, Random Forest, GradientBoosting
 * Automatic model selection based on RMSE
 * Time-series optimized training
 * Model versioning using Hopsworks Model Registry
@@ -151,6 +151,25 @@ python -m Src.Pipeline.train_daily
 ```
 
 ---
+
+
+## 📦 Artifacts Explained
+
+### latest_features.parquet
+- **What it is:** The most recent engineered features and raw data used for prediction, stored in Parquet format.
+- **Contents:** Tabular data with pollutant values, time features, lag features, etc. (the model’s input features).
+- **Purpose:** Used by the dashboard and scripts to make new predictions, display recent data, or for manual inspection. Represents the latest state of the data pipeline.
+
+### model.joblib
+- **What it is:** The serialized (saved) machine learning model, stored in joblib format.
+- **Contents:** The trained model object (e.g., GradientBoostingRegressor) with all learned parameters.
+- **Purpose:** Used by the dashboard and scripts to make predictions on new data. It is the “brain” that takes features (like those in latest_features.parquet) and outputs AQI predictions.
+
+**In summary:**
+- `latest_features.parquet` = “What to predict on” (input data)
+- `model.joblib` = “How to predict” (trained model)
+
+Both are needed for a working prediction pipeline and dashboard.
 
 ## 📁 Project Structure
 
