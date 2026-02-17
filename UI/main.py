@@ -680,7 +680,7 @@ elif current_aqi > 100:
 st.markdown("<div class='section-header'>🔮 3-Day Forecast</div>", unsafe_allow_html=True)
 
 if model is not None:
-    st.info(f"📊 Predictions from {model_metadata['best_model']} (MAE: {model_metadata['mae']:.2f}) — Recursive multi-step forecasting")
+    st.info(f"📊 Predictions from {model_metadata['best_model']} (MAE: {model_metadata['mae']:.2f})")
 
 st.markdown("<br>", unsafe_allow_html=True)
 
