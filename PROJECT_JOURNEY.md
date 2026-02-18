@@ -123,7 +123,7 @@ retries = Retry(
 **Frequency**: One-time (during development)  
 **Error**: "Feature group version conflict"  
 **When**: Changed feature engineering without versioning  
-**Solution**: Created new feature group version (v4 → v5)  
+**Solution**: Created new feature group version (v5 → v6)  
 **Lesson**: Use versioning for schema changes
 
 ---
@@ -131,7 +131,7 @@ retries = Retry(
 ## OPTIMIZATION RESULTS
 
 ### Storage Optimization
-**Before**: 43 model versions in registry  
+**Before**: 14 model versions in registry  
 **After**: 10 model versions (best of each type)  
 **Reduction**: 77%  
 **Method**: Kept only top 3 versions per model type
@@ -159,12 +159,6 @@ retries = Retry(
 ---
 
 ## TECHNICAL SPECIFICATIONS
-
-### Data Statistics
-- **Total Records**: 2,163 hourly observations
-- **Date Range**: November 2025 - January 2026
-- **Features**: 78 engineered from 6 pollutants
-- **Missing Data**: <0.5% (handled via interpolation)
 
 ### Model Performance Comparison
 
@@ -278,7 +272,7 @@ retries = Retry(
 This project successfully demonstrates end-to-end ML system development with production-grade automation. The system:
 
 - ✅ Runs autonomously without manual intervention
-- ✅ Provides accurate 3-day AQI forecasts (RMSE: 32.19)
+- ✅ Provides accurate 3-day AQI forecasts (RMSE: 9.77)
 - ✅ Serves predictions via user-friendly dashboard
 - ✅ Scales efficiently within free tier limits
 - ✅ Handles errors gracefully with logging and retries
@@ -298,7 +292,7 @@ The project is production-ready and deployed on Streamlit Cloud. All source code
 
 ### A. Repository Links
 - **GitHub**: https://github.com/sameedfareed297/AQI_Predictor
-- **Streamlit Dashboard**: [To be deployed]
+- **Streamlit Dashboard**: https://aqi-predictor-karachii.streamlit.app/
 - **SHAP Analysis**: `src/notebooks/shap_analysis.ipynb`
 
 
