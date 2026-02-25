@@ -14,6 +14,10 @@ import json
 import warnings
 warnings.filterwarnings('ignore')
 
+# LOCAL FALLBACK PATHS
+PROJECT_ROOT = Path(__file__).parent.parent
+LOCAL_DATA_PATH = PROJECT_ROOT / "Artifacts" / "latest_features.parquet"
+
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
@@ -343,45 +347,60 @@ def get_health_recommendation(aqi_value: float) -> str:
 
 # FIXED: Load historical data WITHOUT cached Streamlit commands
 def load_historical_data_internal():
-    """Load historical AQI data from Hopsworks Feature Store (no st.xxx calls)."""
+    """Load historical AQI data with automatic fallback."""
     
-    # Get API credentials - try Streamlit secrets first, then .env
+    offline_mode = False
+    
     try:
-        api_key = st.secrets["HOPSWORKS_API_KEY"]
-        project_name = st.secrets["HOPSWORKS_PROJECT_NAME"]
-    except (FileNotFoundError, KeyError):
-        api_key = os.getenv("HOPSWORKS_API_KEY")
-        project_name = os.getenv("HOPSWORKS_PROJECT_NAME")
-    
-    if not api_key or not project_name:
-        raise ValueError("Missing Hopsworks credentials (HOPSWORKS_API_KEY or HOPSWORKS_PROJECT_NAME)")
-    
-    # Login to Hopsworks
-    project = hopsworks.login(
-        api_key_value=api_key,
-        project=project_name
-    )
-    fs = project.get_feature_store()
-    
-    # Load from Feature Group
-    fg = fs.get_feature_group(
-        name="karachi_air_quality",
-        version=6
-    )
-    
-    # Read all data from feature group
-    df = fg.read()
-    
-    if df is None or df.empty:
-        raise ValueError("Feature group returned empty data")
-    
-    # Ensure timestamp column exists
+        # Get API credentials
+        try:
+            api_key = st.secrets["HOPSWORKS_API_KEY"]
+            project_name = st.secrets["HOPSWORKS_PROJECT_NAME"]
+        except (FileNotFoundError, KeyError):
+            api_key = os.getenv("HOPSWORKS_API_KEY")
+            project_name = os.getenv("HOPSWORKS_PROJECT_NAME")
+
+        if not api_key or not project_name:
+            raise ValueError("Missing Hopsworks credentials")
+
+        # Try cloud first
+        project = hopsworks.login(
+            api_key_value=api_key,
+            project=project_name
+        )
+        fs = project.get_feature_store()
+
+        fg = fs.get_feature_group(
+            name="karachi_air_quality",
+            version=6
+        )
+
+        df = fg.read()
+
+        if df is None or df.empty:
+            raise ValueError("Empty feature group")
+
+        # Save fresh backup automatically
+        df.to_parquet(LOCAL_DATA_PATH, index=False)
+
+    except Exception as e:
+        # Fallback to local backup
+        offline_mode = True
+        
+        if LOCAL_DATA_PATH.exists():
+            df = pd.read_parquet(LOCAL_DATA_PATH)
+        else:
+            raise RuntimeError(
+                f"Hopsworks failed and no local backup found.\nError: {e}"
+            )
+
+
+    # Clean + Feature Creation
     if "timestamp" not in df.columns:
-        raise ValueError(f"'timestamp' column not found. Available columns: {df.columns.tolist()}")
-    
+        raise ValueError("timestamp column missing")
+
     df["timestamp"] = pd.to_datetime(df["timestamp"])
-    
-    # Add time-based features if missing
+
     if "hour" not in df.columns:
         df["hour"] = df["timestamp"].dt.hour
     if "day" not in df.columns:
@@ -390,11 +409,10 @@ def load_historical_data_internal():
         df["month"] = df["timestamp"].dt.month
     if "weekday" not in df.columns:
         df["weekday"] = df["timestamp"].dt.weekday
-    
-    # Sort by timestamp
+
     df = df.sort_values("timestamp").reset_index(drop=True)
-    
-    return df
+
+    return df, offline_mode
 
 @st.cache_data(ttl=1800)
 def load_historical_data():
@@ -476,11 +494,18 @@ with loading_placeholder.container():
     
     status_text.text("🔑 Connecting to Hopsworks...")
     progress_bar.progress(25)
+    
 
 # Load Data - With Handling
 try:
     with st.spinner("🔐 Connecting to Hopsworks..."):
-        historical_df = load_historical_data()
+        historical_df, offline_mode = load_historical_data()
+        if offline_mode:
+            st.warning(
+                "⚠️ Running in Offline Mode. Hopsworks Feature Store not working. Using latest local backup."
+            )
+        else:
+            st.success("✔️ Connected to Hopsworks Cloud")
     
     progress_bar.progress(60)
     status_text.text("📊 Loading model metadata...")
