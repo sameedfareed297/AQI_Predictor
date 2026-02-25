@@ -500,12 +500,6 @@ with loading_placeholder.container():
 try:
     with st.spinner("🔐 Connecting to Hopsworks..."):
         historical_df, offline_mode = load_historical_data()
-        if offline_mode:
-            st.warning(
-                "⚠️ Running in Offline Mode. Hopsworks Feature Store not working. Using latest local backup."
-            )
-        else:
-            st.success("✔️ Connected to Hopsworks Cloud")
     
     progress_bar.progress(60)
     status_text.text("📊 Loading model metadata...")
